@@ -9,13 +9,15 @@ import org.sunbird.graph.dac.model.Node;
 import org.sunbird.graph.dac.model.SearchConditions;
 import org.sunbird.graph.dac.model.SearchCriteria;
 import org.sunbird.graph.exception.GraphEngineErrorCodes;
-import org.sunbird.graph.service.operation.Neo4JBoltSearchOperations;
+import org.sunbird.graph.service.operation.SearchAsyncOperations;
+import scala.compat.java8.FutureConverters;
+import scala.concurrent.Future;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 
 /**
@@ -30,18 +32,22 @@ public class NodeValidator {
      * @param identifiers
      * @return List<Node>
      */
-    public static Map<String, Node> validate(String graphId, List<String> identifiers) {
+    public static Future<Map<String, Node>> validate(String graphId, List<String> identifiers) {
         List<Map<String, Object>> result;
-        List<Node> nodes = getDataNodes(graphId, identifiers);
-        Map<String, Node> relationNodes = new HashMap<>();
-        if (nodes.size() != identifiers.size()) {
-            List<String> invalidIds = identifiers.stream().filter(id -> nodes.stream().noneMatch(node -> node.getIdentifier().equals(id)))
-                    .collect(Collectors.toList());
-            throw new ResourceNotFoundException(GraphEngineErrorCodes.ERR_INVALID_NODE.name(), "Node Not Found With Identifier " + invalidIds);
-        } else {
-            relationNodes = nodes.stream().collect(Collectors.toMap(node -> node.getIdentifier(), node -> node));
-            return relationNodes;
-        }
+        Future<List<Node>> nodes = getDataNodes(graphId, identifiers);
+        CompletionStage<Map<String, Node>> cs = FutureConverters.toJava(nodes).thenApply(dataNodes -> {
+            Map<String, Node> relationNodes = new HashMap<>();
+            if (dataNodes.size() != identifiers.size()) {
+                List<String> invalidIds = identifiers.stream().filter(id -> dataNodes.stream().noneMatch(node -> node.getIdentifier().equals(id)))
+                        .collect(Collectors.toList());
+                throw new ResourceNotFoundException(GraphEngineErrorCodes.ERR_INVALID_NODE.name(), "Node Not Found With Identifier " + invalidIds);
+            } else {
+                relationNodes = dataNodes.stream().collect(Collectors.toMap(node -> node.getIdentifier(), node -> node));
+                return relationNodes;
+            }
+        });
+
+        return FutureConverters.toScala(cs);
     }
 
     /**
@@ -50,8 +56,7 @@ public class NodeValidator {
      * @param identifiers
      * @return List<Node>
      */
-    private static List<Node> getDataNodes(String graphId, List<String> identifiers) {
-        List<Node> nodes = new ArrayList<>();
+    private static Future<List<Node>> getDataNodes(String graphId, List<String> identifiers) {
         SearchCriteria searchCriteria = new SearchCriteria();
         MetadataCriterion mc = null;
         if (identifiers.size() == 1) {
@@ -63,11 +68,11 @@ public class NodeValidator {
         searchCriteria.addMetadata(mc);
         searchCriteria.setCountQuery(false);
         try {
-            nodes = Neo4JBoltSearchOperations.getNodeByUniqueIds(graphId, searchCriteria);
+            Future<List<Node>> nodes = SearchAsyncOperations.getNodeByUniqueIds(graphId, searchCriteria);
+            return nodes;
         } catch (Exception e) {
             throw new ServerException(GraphEngineErrorCodes.ERR_GRAPH_PROCESSING_ERROR.name(), "Unable To Fetch Nodes From Graph. Exception is: " + e.getMessage());
 
         }
-        return nodes;
     }
 }

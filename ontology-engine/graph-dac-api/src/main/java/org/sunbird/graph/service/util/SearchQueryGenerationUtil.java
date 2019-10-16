@@ -6,7 +6,6 @@ import org.sunbird.common.dto.Property;
 import org.sunbird.graph.common.enums.GraphDACParams;
 import org.sunbird.graph.common.enums.SystemProperties;
 import org.sunbird.graph.dac.model.SearchCriteria;
-import org.sunbird.graph.dac.model.Traverser;
 import org.sunbird.graph.service.common.DACErrorCodeConstants;
 import org.sunbird.graph.service.common.DACErrorMessageConstants;
 import org.sunbird.telemetry.logger.TelemetryManager;
@@ -375,72 +374,5 @@ public class SearchQueryGenerationUtil {
 		return query.toString();
 	}
 
-	public static String generateTraverseCypherQuery(Map<String, Object> parameterMap) {
-		StringBuilder query = new StringBuilder();
-		if (null != parameterMap) {
-			String graphId = (String) parameterMap.get(GraphDACParams.graphId.name());
-			if (StringUtils.isBlank(graphId))
-				throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name(),
-						DACErrorMessageConstants.INVALID_GRAPH_ID + " | ['Traverse' Query Generation Failed.]");
-
-			Traverser traverser = (Traverser) parameterMap.get(GraphDACParams.traverser.name());
-			if (null == traverser)
-				throw new ClientException(DACErrorCodeConstants.INVALID_TRAVERSER.name(),
-						DACErrorMessageConstants.INVALID_TRAVERSER + " | ['Traverse' Query Generation Failed.]");
-		}
-
-		TelemetryManager.log("Returning Traverse Cypher Query: " + query);
-		return query.toString();
-	}
-
-	public static String generateTraverseSubGraphCypherQuery(Map<String, Object> parameterMap) {
-		StringBuilder query = new StringBuilder();
-		if (null != parameterMap) {
-			String graphId = (String) parameterMap.get(GraphDACParams.graphId.name());
-			if (StringUtils.isBlank(graphId))
-				throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name(),
-						DACErrorMessageConstants.INVALID_GRAPH_ID
-								+ " | ['Traverse Sub Graph' Query Generation Failed.]");
-
-			Traverser traverser = (Traverser) parameterMap.get(GraphDACParams.traverser.name());
-			if (null == traverser)
-				throw new ClientException(DACErrorCodeConstants.INVALID_TRAVERSER.name(),
-						DACErrorMessageConstants.INVALID_TRAVERSER
-								+ " | ['Traverse Sub Graph' Query Generation Failed.]");
-		}
-
-		TelemetryManager.log("Returning Traverse Sub Graph Cypher Query: " + query);
-		return query.toString();
-	}
-
-	public static String generateGetSubGraphCypherQuery(Map<String, Object> parameterMap) {
-		StringBuilder query = new StringBuilder();
-		if (null != parameterMap) {
-			String graphId = (String) parameterMap.get(GraphDACParams.graphId.name());
-			if (StringUtils.isBlank(graphId))
-				throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name(),
-						DACErrorMessageConstants.INVALID_GRAPH_ID + " | ['Get Sub Graph' Query Generation Failed.]");
-
-			String startNodeId = (String) parameterMap.get(GraphDACParams.startNodeId.name());
-			if (StringUtils.isBlank(startNodeId))
-				throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name(),
-						DACErrorMessageConstants.INVALID_START_NODE_ID
-								+ " | ['Get Sub Graph' Query Generation Failed.]");
-
-			String relationType = (String) parameterMap.get(GraphDACParams.relationType.name());
-			if (StringUtils.isBlank(relationType))
-				throw new ClientException(DACErrorCodeConstants.INVALID_RELATION.name(),
-						DACErrorMessageConstants.INVALID_RELATION_TYPE
-								+ " | ['Get Sub Graph' Query Generation Failed.]");
-
-			int depth = (int) parameterMap.get(GraphDACParams.graphId.name());
-			if (depth <= 0)
-				throw new ClientException(DACErrorCodeConstants.INVALID_DEPTH.name(),
-						DACErrorMessageConstants.INVALID_DEPTH + " | ['Get Sub Graph' Query Generation Failed.]");
-		}
-
-		TelemetryManager.log("Returning Get Sub Graph Cypher Query: " + query);
-		return query.toString();
-	}
 
 }

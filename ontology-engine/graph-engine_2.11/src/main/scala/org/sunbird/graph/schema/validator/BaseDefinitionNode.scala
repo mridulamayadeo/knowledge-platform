@@ -13,6 +13,7 @@ import org.sunbird.graph.service.operation.Neo4JBoltSearchOperations
 import org.apache.commons.collections4.CollectionUtils
 
 import scala.collection.JavaConverters._
+import scala.concurrent.{ExecutionContext, Future}
 
 class BaseDefinitionNode(graphId: String, objectType: String, version: String = "1.0") extends IDefinitionNode(graphId, objectType, version) {
 
@@ -54,8 +55,8 @@ class BaseDefinitionNode(graphId: String, objectType: String, version: String = 
     }
 
     @throws[Exception]
-    override def validate(node: Node): Node = {
-        node
+    override def validate(node: Node)(implicit ec: ExecutionContext): Future[Node] = {
+        Future{node}
     }
 
     override def getNode(identifier: String, operation: String, mode: String): Node = {

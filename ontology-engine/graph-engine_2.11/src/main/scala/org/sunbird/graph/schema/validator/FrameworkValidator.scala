@@ -9,11 +9,12 @@ import org.sunbird.graph.schema.IDefinitionNode
 
 import scala.collection.JavaConverters._
 import scala.collection.Map
+import scala.concurrent.{ExecutionContext, Future}
 
 trait FrameworkValidator extends IDefinitionNode {
   val categoryCache: CategoryCache = new CategoryCache()
   @throws[Exception]
-  abstract override def validate(node: Node): Node = {
+  abstract override def validate(node: Node)(implicit ec: ExecutionContext): Future[Node] = {
     val fwCategories: List[String] = schemaValidator.getConfig.getStringList("frameworkCategories").asScala.toList
     val framework: String = node.getMetadata.getOrDefault("framework", "").asInstanceOf[String]
     if (null != fwCategories && fwCategories.nonEmpty && framework.nonEmpty) {

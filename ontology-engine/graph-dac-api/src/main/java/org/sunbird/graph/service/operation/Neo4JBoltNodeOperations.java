@@ -36,9 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-//import org.sunbird.graph.cache.mgr.impl.NodeCacheManager;
-//import org.sunbird.graph.cache.util.RedisStoreUtil;
-
 public class Neo4JBoltNodeOperations {
 
 	private final static String DEFAULT_CYPHER_NODE_OBJECT = "ee";

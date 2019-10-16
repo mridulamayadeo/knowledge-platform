@@ -13,12 +13,14 @@ import org.sunbird.graph.schema.IDefinitionNode
 import org.sunbird.graph.service.common.{DACConfigurationConstants, NodeUpdateMode}
 import org.sunbird.graph.service.operation.Neo4JBoltSearchOperations
 
+import scala.concurrent.{ExecutionContext, Future}
+
 trait VersionKeyValidator extends IDefinitionNode {
 
     private val graphPassportKey = Platform.config.getString(DACConfigurationConstants.PASSPORT_KEY_BASE_PROPERTY)
 
     @throws[Exception]
-    abstract override def validate(node: Node): Node = {
+    abstract override def validate(node: Node)(implicit ec: ExecutionContext): Future[Node] = {
         if(!isValidVersionkey(node)) throw new ClientException(ResponseCode.CLIENT_ERROR.name, "Invalid version Key")
         super.validate(node)
     }
