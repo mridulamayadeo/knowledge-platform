@@ -9,8 +9,7 @@ import org.sunbird.graph.common.Identifier
 import org.sunbird.graph.dac.enums.SystemNodeTypes
 import org.sunbird.graph.dac.model.{Node, Relation}
 import org.sunbird.graph.schema.IDefinitionNode
-import org.sunbird.graph.service.operation.Neo4JBoltSearchOperations
-import org.apache.commons.collections4.CollectionUtils
+import org.sunbird.graph.service.operation.SearchAsyncOperations
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -59,9 +58,9 @@ class BaseDefinitionNode(graphId: String, objectType: String, version: String = 
         Future{node}
     }
 
-    override def getNode(identifier: String, operation: String, mode: String): Node = {
+    override def getNode(identifier: String, operation: String, mode: String)(implicit ec: ExecutionContext): Future[Node] = {
         val request: Request = new Request()
-        val node: Node =Neo4JBoltSearchOperations.getNodeByUniqueId(graphId, identifier, false, request)
+        val node: Future[Node] = SearchAsyncOperations.getNodeByUniqueId(graphId, identifier, false, request)
         node
     }
 

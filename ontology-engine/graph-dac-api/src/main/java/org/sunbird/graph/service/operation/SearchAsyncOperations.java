@@ -4,9 +4,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.Session;
+import org.neo4j.driver.v1.StatementResult;
 import org.neo4j.driver.v1.Value;
 import org.neo4j.driver.v1.exceptions.ClientException;
+import org.sunbird.common.dto.Request;
 import org.sunbird.common.exception.MiddlewareException;
+import org.sunbird.common.exception.ResourceNotFoundException;
 import org.sunbird.common.exception.ServerException;
 import org.sunbird.graph.common.enums.GraphDACParams;
 import org.sunbird.graph.dac.model.Node;
@@ -129,6 +132,94 @@ public class SearchAsyncOperations {
                         .get(CypherQueryConfigurationConstants.DEFAULT_CYPHER_END_NODE_OBJECT).asNode();
                 endNodeMap.put(endNode.id(), endNode);
             }
+        }
+    }
+
+
+    /**
+     * Gets the node by unique id.
+     *
+     * @param graphId
+     *            the graph id
+     * @param nodeId
+     *            the node id
+     * @param getTags
+     *            the get tags
+     * @param request
+     *            the request
+     * @return the node by unique id
+     */
+    public static Future<Node> getNodeByUniqueId(String graphId, String nodeId, Boolean getTags, Request request) {
+        TelemetryManager.log("Graph Id: " + graphId + "\nNode Id: " + nodeId + "\nGet Tags:" + getTags);
+
+        if (StringUtils.isBlank(graphId))
+            throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name(),
+                    DACErrorMessageConstants.INVALID_GRAPH_ID + " | ['Get Node By Unique Id' Operation Failed.]");
+
+        if (StringUtils.isBlank(nodeId))
+            throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name(),
+                    DACErrorMessageConstants.INVALID_IDENTIFIER + " | ['Get Node By Unique Id' Operation Failed.]");
+
+            Driver driver = DriverUtil.getDriver(graphId, GraphOperation.READ);
+            TelemetryManager.log("Driver Initialised. | [Graph Id: " + graphId + "]");
+            try (Session session = driver.session()) {
+                Map<String, Object> parameterMap = new HashMap<String, Object>();
+                parameterMap.put(GraphDACParams.graphId.name(), graphId);
+                parameterMap.put(GraphDACParams.nodeId.name(), nodeId);
+                parameterMap.put(GraphDACParams.getTags.name(), getTags);
+                parameterMap.put(GraphDACParams.request.name(), request);
+                CompletionStage<Node> cs = session.runAsync(SearchQueryGenerationUtil.generateGetNodeByUniqueIdCypherQuery(parameterMap))
+                        .thenCompose(fn -> fn.singleAsync()).thenApply(record -> {
+                            if (null == record)
+                                throw new ResourceNotFoundException(DACErrorCodeConstants.NOT_FOUND.name(),
+                                        DACErrorMessageConstants.NODE_NOT_FOUND + " | [Invalid Node Id.]: " + nodeId, nodeId);
+
+                            Map<Long, Object> nodeMap = new HashMap<Long, Object>();
+                            Map<Long, Object> relationMap = new HashMap<Long, Object>();
+                            Map<Long, Object> startNodeMap = new HashMap<Long, Object>();
+                            Map<Long, Object> endNodeMap = new HashMap<Long, Object>();
+
+                            getRecordValues(record, nodeMap, relationMap, startNodeMap, endNodeMap);
+                            Node node = null;
+                            if (!nodeMap.isEmpty()) {
+                                for (Map.Entry<Long, Object> entry : nodeMap.entrySet())
+                                    node = Neo4jNodeUtil.getNode(graphId, (org.neo4j.driver.v1.types.Node) entry.getValue(), relationMap,
+                                            startNodeMap, endNodeMap);
+                            }
+                            return node;
+                        });
+
+                return (Future<Node>)FutureConverters.toScala(cs);
+
+                /*StatementResult result = session
+                        .run(SearchQueryGenerationUtil.generateGetNodeByUniqueIdCypherQuery(parameterMap));
+                if (null == result || !result.hasNext())
+                    throw new ResourceNotFoundException(DACErrorCodeConstants.NOT_FOUND.name(),
+                            DACErrorMessageConstants.NODE_NOT_FOUND + " | [Invalid Node Id.]: " + nodeId, nodeId);
+
+                Map<Long, Object> nodeMap = new HashMap<Long, Object>();
+                Map<Long, Object> relationMap = new HashMap<Long, Object>();
+                Map<Long, Object> startNodeMap = new HashMap<Long, Object>();
+                Map<Long, Object> endNodeMap = new HashMap<Long, Object>();
+                for (Record record : result.list()) {
+                    TelemetryManager.log("'Get Node By Unique Id' Operation Finished.", record.asMap());
+                    if (null != record)
+                        getRecordValues(record, nodeMap, relationMap, startNodeMap, endNodeMap);
+                }
+
+                if (!nodeMap.isEmpty()) {
+                    for (Map.Entry<Long, Object> entry : nodeMap.entrySet())
+//						node = new Node(graphId, (org.neo4j.driver.v1.types.Node) entry.getValue(), relationMap,
+//								startNodeMap, endNodeMap);
+                        node= Neo4jNodeUtil.getNode(graphId, (org.neo4j.driver.v1.types.Node) entry.getValue(), relationMap,
+                                startNodeMap, endNodeMap);
+                }
+                if (StringUtils.equalsIgnoreCase("Concept", node.getObjectType())) {
+                    TelemetryManager.info("Saving concept to in-memory cache: "+node.getIdentifier());
+//					NodeCacheManager.saveDataNode(graphId, node.getIdentifier(), node);
+                }
+            }
+            return node;*/
         }
     }
 }

@@ -23,10 +23,14 @@ trait RelationValidator extends IDefinitionNode {
                 node.setNodeType(SystemNodeTypes.DATA_NODE.name)
                 relNodes.put(node.getIdentifier, node)
                 node.setRelationNodes(relNodes)
-            })
+                node
+            }).map(node => {
+                super.validate(node)
+            }).flatMap(f => f)
             // TODO: behavior validation should be here.
+        } else {
+            super.validate(node)
         }
-        super.validate(node)
     }
 
 }

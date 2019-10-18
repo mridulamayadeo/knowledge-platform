@@ -115,6 +115,7 @@ public class Neo4jNodeUtil {
                     }
                 }
             }
+            node.setMetadata(metadata);
         }
 
         if (null != relationMap && !relationMap.isEmpty() && null != startNodeMap && !startNodeMap.isEmpty()

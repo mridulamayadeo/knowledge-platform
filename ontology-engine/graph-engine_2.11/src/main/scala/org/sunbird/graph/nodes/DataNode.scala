@@ -23,22 +23,17 @@ object DataNode {
         val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
         val version: String = request.getContext.get("version").asInstanceOf[String]
         val definition = DefinitionFactory.getDefinition(graphId, request.getObjectType, version)
-        val validationResult = validate(request.getRequest, definition)
-        validationResult.map(processingNode => {
-            val response = NodeAsyncOperations.addNode(graphId, processingNode.getNode)
+        val inputNode = definition.getNode(request.getRequest)
+        val validatedNode = definition.validate(inputNode)
+        validatedNode.map(node => {
+            val response = NodeAsyncOperations.addNode(graphId, node)
             response.map(result => {
                 val futureList = Task.parallel[Response](
-                    saveExternalProperties(processingNode.getIdentifier, processingNode.getExternalData, request.getContext, request.getObjectType),
-                    updateRelations(graphId, processingNode, request.getContext))
+                    saveExternalProperties(node.getIdentifier, node.getExternalData, request.getContext, request.getObjectType),
+                    updateRelations(graphId, node, request.getContext))
                 futureList.map(list => result)
             }).flatMap(f => f)
         }).flatMap(f => f)
-    }
-
-    @throws[Exception]
-    private def validate(input: util.Map[String, AnyRef], definition: DefinitionNode)(implicit ec: ExecutionContext): Future[Node] = {
-        val node = definition.getNode(input)
-        definition.validate(node)
     }
 
     private def saveExternalProperties(identifier: String, externalProps: util.Map[String, AnyRef], context: util.Map[String, AnyRef], objectType: String)(implicit ec: ExecutionContext): Future[Response] = {

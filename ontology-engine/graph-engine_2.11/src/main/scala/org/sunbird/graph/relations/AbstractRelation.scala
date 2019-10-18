@@ -8,6 +8,7 @@ import org.sunbird.graph.dac.mgr.impl.{Neo4JBoltGraphMgrImpl, Neo4JBoltSearchMgr
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.exception.GraphRelationErrorCodes
 import org.sunbird.graph.schema.DefinitionFactory
+//import org.sunbird.graph.service.operation.Neo4JBoltSearchOperations
 
 abstract class AbstractRelation(graphId: String, startNode: Node, endNode: Node, metadata: java.util.Map[String, AnyRef]) extends IRelation {
 
@@ -24,8 +25,7 @@ abstract class AbstractRelation(graphId: String, startNode: Node, endNode: Node,
         val res = graphMgr.addRelation(request)
         if (ResponseHandler.checkError(res)) {
             ResponseHandler.getErrorMessage(res)
-        }
-        else{
+        } else {
             null
         }
     }
@@ -49,6 +49,7 @@ abstract class AbstractRelation(graphId: String, startNode: Node, endNode: Node,
         request.put(GraphDACParams.start_node_id.name, this.endNode.getIdentifier)
         request.put(GraphDACParams.relation_type.name, getRelationType)
         request.put(GraphDACParams.end_node_id.name, this.startNode.getIdentifier)
+//        Neo4JBoltSearchOperations.checkCyclicLoop(graphId, this.endNode.getIdentifier, getRelationType(),this.startNode.getIdentifier, request);
         val res = searchMgr.checkCyclicLoop(request)
         if (ResponseHandler.checkError(res)) ResponseHandler.getErrorMessage(res)
         else {
