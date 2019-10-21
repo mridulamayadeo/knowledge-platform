@@ -25,4 +25,6 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         setRequestContext(contentRequest, version, objectType)
         getResult("org.sunbird.content.create", contentActor, contentRequest)
     }
+
+
 }

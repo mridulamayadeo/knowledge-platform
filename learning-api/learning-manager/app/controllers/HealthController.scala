@@ -10,14 +10,12 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 class HealthController @Inject()(cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends AbstractController(cc) {
 
     def health() = Action.async { implicit request =>
-        getFutureMessage(1.second).map { msg => Ok(msg) }
+        getFutureMessage(1.second).map { msg => Ok("Health API Testing...") }
     }
 
     private def getFutureMessage(delayTime: FiniteDuration): Future[String] = {
         val promise: Promise[String] = Promise[String]()
-        actorSystem.scheduler.scheduleOnce(delayTime) {
-            promise.success("Health API Testing!...")
-        }(actorSystem.dispatcher) // run scheduled tasks using the actor system's dispatcher
+        promise.success("Health API Testing!...")
         promise.future
     }
 }

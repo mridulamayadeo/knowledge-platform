@@ -13,7 +13,6 @@ object ExternalPropsManager {
         val version: String = request.getContext.get("version").asInstanceOf[String]
         val store = ExternalStoreFactory.getExternalStore(SchemaValidatorFactory.getExternalStoreName(objectType, version))
         store.insert(request.getRequest)
-        Future(new Response)
     }
 
 }

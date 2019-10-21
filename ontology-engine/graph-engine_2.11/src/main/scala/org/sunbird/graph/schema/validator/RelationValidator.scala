@@ -13,7 +13,7 @@ import scala.concurrent.{ExecutionContext, Future}
 trait RelationValidator extends IDefinitionNode {
 
     @throws[Exception]
-    abstract override def validate(node: Node)(implicit ec: ExecutionContext): Future[Node] = {
+    abstract override def validate(node: Node, operation: String)(implicit ec: ExecutionContext): Future[Node] = {
         val relations = node.getAddedRelations
         if (CollectionUtils.isNotEmpty(relations)) {
             val ids = relations.asScala.map(r => List(r.getStartNodeId, r.getEndNodeId)).flatten
@@ -25,11 +25,11 @@ trait RelationValidator extends IDefinitionNode {
                 node.setRelationNodes(relNodes)
                 node
             }).map(node => {
-                super.validate(node)
+                super.validate(node, operation)
             }).flatMap(f => f)
             // TODO: behavior validation should be here.
         } else {
-            super.validate(node)
+            super.validate(node, operation)
         }
     }
 

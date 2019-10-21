@@ -304,60 +304,6 @@ public class Neo4JBoltSearchOperations {
 	}
 	
 	/**
-	 * Gets the node property.
-	 *
-	 * @param graphId
-	 *            the graph id
-	 * @param nodeId
-	 *            the node id
-	 * @param key
-	 *            the key
-	 * @param request
-	 *            the request
-	 * @return the node property
-	 */
-	public static Property getNodeProperty(String graphId, String nodeId, String key, Request request) {
-		TelemetryManager.log("Graph Id: " + graphId + "\nNode Id: " + nodeId + "\nProperty (Key): " + key);
-
-
-		if (StringUtils.isBlank(graphId))
-			throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name(),
-					DACErrorMessageConstants.INVALID_GRAPH_ID + " | ['Get Node Property' Operation Failed.]");
-
-		if (StringUtils.isBlank(nodeId))
-			throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name(),
-					DACErrorMessageConstants.INVALID_IDENTIFIER + " | ['Get Node Property' Operation Failed.]");
-
-		if (StringUtils.isBlank(key))
-			throw new ClientException(DACErrorCodeConstants.INVALID_PROPERTY.name(),
-					DACErrorMessageConstants.INVALID_PROPERTY_KEY + " | ['Get Node Property' Operation Failed.]");
-
-		Property property = new Property();
-		Driver driver = DriverUtil.getDriver(graphId, GraphOperation.READ);
-		TelemetryManager.log("Driver Initialised. | [Graph Id: " + graphId + "]");
-		try (Session session = driver.session()) {
-			Map<String, Object> parameterMap = new HashMap<String, Object>();
-			parameterMap.put(GraphDACParams.graphId.name(), graphId);
-			parameterMap.put(GraphDACParams.nodeId.name(), nodeId);
-			parameterMap.put(GraphDACParams.key.name(), key);
-			parameterMap.put(GraphDACParams.request.name(), request);
-
-			StatementResult result = session
-					.run(SearchQueryGenerationUtil.generateGetNodePropertyCypherQuery(parameterMap));
-			if (null != result) {
-				for (Record record : result.list()) {
-					TelemetryManager.log("'Get Node Property' Operation Finished.", record.asMap());
-					if (null != record && null != record.get(key)) {
-						property.setPropertyName(key);
-						property.setPropertyValue(record.get(key));
-					}
-				}
-			}
-		}
-		return property;
-	}
-
-	/**
 	 * Gets the all nodes.
 	 *
 	 * @param graphId

@@ -24,7 +24,7 @@ object DataNode {
         val version: String = request.getContext.get("version").asInstanceOf[String]
         val definition = DefinitionFactory.getDefinition(graphId, request.getObjectType, version)
         val inputNode = definition.getNode(request.getRequest)
-        val validatedNode = definition.validate(inputNode)
+        val validatedNode = definition.validate(inputNode, "create")
         validatedNode.map(node => {
             val response = NodeAsyncOperations.addNode(graphId, node)
             response.map(result => {

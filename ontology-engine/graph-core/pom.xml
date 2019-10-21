@@ -8,12 +8,6 @@
 	</parent>
 	<artifactId>graph-core</artifactId>
 	<dependencies>
-
-		<dependency>
-			<groupId>com.typesafe.akka</groupId>
-			<artifactId>akka-actor_${scala.maj.version}</artifactId>
-			<version>2.5.22</version>
-		</dependency>
 		<dependency>
 			<groupId>org.sunbird</groupId>
 			<artifactId>graph-dac</artifactId>

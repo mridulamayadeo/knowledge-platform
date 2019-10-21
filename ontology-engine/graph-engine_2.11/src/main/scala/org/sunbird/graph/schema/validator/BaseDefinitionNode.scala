@@ -54,7 +54,7 @@ class BaseDefinitionNode(graphId: String, objectType: String, version: String = 
     }
 
     @throws[Exception]
-    override def validate(node: Node)(implicit ec: ExecutionContext): Future[Node] = {
+    override def validate(node: Node, operation: String)(implicit ec: ExecutionContext): Future[Node] = {
         Future{node}
     }
 

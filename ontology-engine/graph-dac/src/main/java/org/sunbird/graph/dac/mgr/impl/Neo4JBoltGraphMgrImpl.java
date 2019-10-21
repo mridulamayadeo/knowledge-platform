@@ -4,7 +4,6 @@ import org.sunbird.common.dto.Request;
 import org.sunbird.common.dto.Response;
 import org.sunbird.common.exception.ClientException;
 import org.sunbird.graph.common.enums.GraphDACParams;
-import org.sunbird.graph.common.enums.GraphHeaderParams;
 import org.sunbird.graph.dac.enums.GraphDACErrorCodes;
 import org.sunbird.graph.dac.mgr.IGraphDACGraphMgr;
 import org.sunbird.graph.service.operation.Neo4JBoltGraphOperations;
@@ -14,7 +13,7 @@ public class Neo4JBoltGraphMgrImpl extends BaseDACManager implements IGraphDACGr
 
 	@Override
 	public Response addRelation(Request request) {
-		String graphId = (String) request.getContext().get(GraphHeaderParams.graph_id.name());
+		String graphId = (String) request.getContext().get(GraphDACParams.graph_id.name());
 		String startNodeId = (String) request.get(GraphDACParams.start_node_id.name());
 		String relationType = (String) request.get(GraphDACParams.relation_type.name());
 		String endNodeId = (String) request.get(GraphDACParams.end_node_id.name());

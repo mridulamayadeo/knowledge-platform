@@ -40,14 +40,14 @@ trait VersioningNode extends IDefinitionNode {
     private def getNodeToRead(identifier: String, mode: String)(implicit ec: ExecutionContext) = {
         val node: Future[Node] = {
             if("edit".equalsIgnoreCase(mode)){
-                val imageNode = super.getNode(identifier + IMAGE_SUFFIX , "read", mode)
-                imageNode.map(imgnode => {
-                    if(null == imgnode){
+                try{
+                    val imageNode = super.getNode(identifier + IMAGE_SUFFIX , "read", mode)
+                    imageNode
+                } catch {
+                    case e: ResourceNotFoundException => {
                         super.getNode(identifier , "read", mode)
-                    }else {
-                        Future{imgnode}
                     }
-                }).flatMap(f => f)
+                }
             } else {
                 super.getNode(identifier , "read", mode)
             }
@@ -66,15 +66,16 @@ trait VersioningNode extends IDefinitionNode {
         val status = node.getMetadata.get("status").asInstanceOf[String]
         if(statusList.contains(status)) {
             val imageId = node.getIdentifier + IMAGE_SUFFIX
-            val imageNode = SearchAsyncOperations.getNodeByUniqueId(node.getGraphId, imageId, false, new Request())
-            imageNode.map(dbnode => {
-                if(null == dbnode) {
+            try{
+                val imageNode = SearchAsyncOperations.getNodeByUniqueId(node.getGraphId, imageId, false, new Request())
+                imageNode
+            } catch {
+                case e: ResourceNotFoundException => {
                     node.setIdentifier(imageId)
                     node.setObjectType(node.getObjectType + IMAGE_OBJECT_SUFFIX)
                     NodeAsyncOperations.addNode(node.getGraphId, node)
-                } else
-                    Future{dbnode}
-            }).flatMap(f =>f)
+                }
+            }
         } else
             Future{node}
     }

@@ -10,6 +10,7 @@ import com.datastax.driver.core.querybuilder.{Insert, QueryBuilder}
 import com.google.common.util.concurrent.{FutureCallback, Futures, ListenableFuture, MoreExecutors}
 import org.sunbird.cassandra.{CassandraConnector, CassandraStore}
 import org.sunbird.common.dto.ResponseHandler
+import org.sunbird.common.dto.Response
 import org.sunbird.common.exception.{ErrorCodes, ServerException}
 import org.sunbird.telemetry.logger.TelemetryManager
 
@@ -18,7 +19,7 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 
 class ExternalStore(keySpace: String , table: String , primaryKey: java.util.List[String]) extends CassandraStore(keySpace, table, primaryKey) {
 
-    def insert(request: util.Map[String, AnyRef])(implicit ec: ExecutionContext): Unit = {
+    def insert(request: util.Map[String, AnyRef])(implicit ec: ExecutionContext): Future[Response] = {
         val insertQuery: Insert = QueryBuilder.insertInto(keySpace, table)
         val identifier = request.get("identifier");
         insertQuery.value("identifier", identifier)
